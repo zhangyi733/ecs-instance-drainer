@@ -17,5 +17,6 @@
 
 # Vendor Folder
 /vendor/
+/vendor.orig/
 
 # End of https://www.gitignore.io/api/go
