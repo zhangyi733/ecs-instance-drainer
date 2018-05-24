@@ -12,6 +12,8 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/ecsiface"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/service/sqs/sqsiface"
 	"github.com/facebookgo/clock"
 	"github.com/stretchr/testify/assert"
 )
@@ -35,8 +37,9 @@ func TestWorkerGotMessage(t *testing.T) {
 	mockECSSvc := mockECSClient{}
 	mockASGSvc := &mockASGClient{}
 	mockDrainer := &mockDrainerClient{}
+	mockSQSSvc := &mockSQSClient{}
 	go func() {
-		w.Start(mockDrainer, mockECSSvc, mockASGSvc)
+		w.Start(mockDrainer, mockECSSvc, mockASGSvc, mockSQSSvc)
 	}()
 	w.Message <- message.LifecycleMessage{LifecycleTransition: "Test Message"}
 	w.stop()
@@ -49,7 +52,8 @@ func TestStop(t *testing.T) {
 	mockECSSvc := mockECSClient{}
 	mockASGSvc := &mockASGClient{}
 	mockDrainer := &mockDrainerClient{}
-	w.Start(mockDrainer, mockECSSvc, mockASGSvc)
+	mockSQSSvc := &mockSQSClient{}
+	w.Start(mockDrainer, mockECSSvc, mockASGSvc, mockSQSSvc)
 	w.stop()
 
 	assert.True(t, <-w.quit)
@@ -103,6 +107,10 @@ type mockASGClient struct {
 	autoscalingiface.AutoScalingAPI
 }
 
+type mockSQSClient struct {
+	sqsiface.SQSAPI
+}
+
 type mockDrainerClient struct {
 	resp bool
 	drainer.Drain
@@ -127,4 +135,12 @@ func (m *mockDrainerClient) SetInstanceId(i string) {
 
 func (m *mockDrainerClient) SetInstanceToDrain(svc ecsiface.ECSAPI) (bool, error) {
 	return true, nil
+}
+
+func (m *mockSQSClient) DeleteMessageRequest(input *sqs.DeleteMessageInput) sqs.DeleteMessageRequest {
+	return sqs.DeleteMessageRequest{
+		Request: &aws.Request{
+			Data: &sqs.DeleteMessageOutput{},
+		},
+	}
 }

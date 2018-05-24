@@ -11,11 +11,14 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/ecsiface"
+	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"github.com/aws/aws-sdk-go-v2/service/sqs/sqsiface"
 	"github.com/facebookgo/clock"
 )
 
 const (
-	timeout = "DRAINER_TIMEOUT"
+	timeout     = "DRAINER_TIMEOUT"
+	queueEnvVar = "LIFECYCLE_QUEUE"
 )
 
 type Worker struct {
@@ -31,7 +34,7 @@ func NewWorker(messageChannel chan message.LifecycleMessage) *Worker {
 	}
 }
 
-func (w *Worker) Start(d drainer.Drain, ecsService ecsiface.ECSAPI, asgService autoscalingiface.AutoScalingAPI) {
+func (w *Worker) Start(d drainer.Drain, ecsService ecsiface.ECSAPI, asgService autoscalingiface.AutoScalingAPI, sqsService sqsiface.SQSAPI) {
 	go func() {
 		for {
 			select {
@@ -45,7 +48,8 @@ func (w *Worker) Start(d drainer.Drain, ecsService ecsiface.ECSAPI, asgService a
 					} else {
 						terminated := w.terminateNode(clock.New().Ticker(30*time.Second), d, ecsService, asgService, msg)
 						if terminated {
-							// TODO Delete the SQS Message
+							log.Printf("Deleting message %s for instance %s", msg.RequestId, msg.EC2InstanceId)
+							DeleteMessage(msg.ReceiptHandle, sqsService)
 							w.quit <- true
 						}
 					}
@@ -95,8 +99,19 @@ func (w *Worker) terminateNode(ticker *clock.Ticker, d drainer.Drain, ecsService
 					done <- true
 				}
 			}
-			log.Print("Waiting for tasks to stop running.")
 		}
+	}
+}
+
+func DeleteMessage(receiptHandle string, svc sqsiface.SQSAPI) {
+	queueUrl := helper.EnvMustHave(queueEnvVar)
+	req := svc.DeleteMessageRequest(&sqs.DeleteMessageInput{
+		QueueUrl:      &queueUrl,
+		ReceiptHandle: &receiptHandle,
+	})
+	_, err := req.Send()
+	if err != nil {
+		log.Printf("Could not delete message %s from SQS", receiptHandle)
 	}
 }
 

@@ -40,14 +40,14 @@ func main() {
 	}
 	AwsConfig.Region = identity.Region
 	d := drainer.NewDrainer()
-
+	sqs := sqs.New(AwsConfig)
 	var wg sync.WaitGroup
 	wg.Add(1)
 
 	mp := message.NewMessageProcessor(messageChannel)
-	mp.Start(sqs.New(AwsConfig))
+	mp.Start(sqs)
 	w := worker.NewWorker(messageChannel)
-	w.Start(d, ecs.New(AwsConfig), autoscaling.New(AwsConfig))
+	w.Start(d, ecs.New(AwsConfig), autoscaling.New(AwsConfig), sqs)
 
 	wg.Wait()
 	log.Print("Done")
