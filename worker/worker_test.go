@@ -6,14 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/TechemyLtd/ecs-instance-drainer/drainer"
-	"github.com/TechemyLtd/ecs-instance-drainer/message"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling/autoscalingiface"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/ecsiface"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/sqsiface"
+	"github.com/bnc-projects/ecs-instance-drainer/drainer"
+	"github.com/bnc-projects/ecs-instance-drainer/message"
 	"github.com/facebookgo/clock"
 	"github.com/stretchr/testify/assert"
 )

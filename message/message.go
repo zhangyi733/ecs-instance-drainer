@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"log"
 
-	"github.com/TechemyLtd/ecs-instance-drainer/helper"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs/sqsiface"
+	"github.com/bnc-projects/ecs-instance-drainer/helper"
 )
 
 const (

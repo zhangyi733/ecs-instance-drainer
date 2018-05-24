@@ -4,9 +4,9 @@ import (
 	"errors"
 	"log"
 
-	"github.com/TechemyLtd/ecs-instance-drainer/helper"
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/ecs/ecsiface"
+	"github.com/bnc-projects/ecs-instance-drainer/helper"
 )
 
 const (

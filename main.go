@@ -7,15 +7,15 @@ import (
 	"sync"
 	"syscall"
 
-	"github.com/TechemyLtd/ecs-instance-drainer/drainer"
-	"github.com/TechemyLtd/ecs-instance-drainer/message"
-	"github.com/TechemyLtd/ecs-instance-drainer/worker"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go-v2/aws/external"
 	"github.com/aws/aws-sdk-go-v2/service/autoscaling"
 	"github.com/aws/aws-sdk-go-v2/service/ecs"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
+	"github.com/bnc-projects/ecs-instance-drainer/drainer"
+	"github.com/bnc-projects/ecs-instance-drainer/message"
+	"github.com/bnc-projects/ecs-instance-drainer/worker"
 )
 
 var AwsConfig aws.Config
