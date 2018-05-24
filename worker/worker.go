@@ -45,6 +45,8 @@ func (w *Worker) Start(d drainer.Drain, ecsService ecsiface.ECSAPI, asgService a
 					_, err := d.SetInstanceToDrain(ecsService)
 					if err != nil {
 						log.Print("Error setting instance to draining")
+						// Mostly likely caused by the instance being terminated so we will delete the message.
+						DeleteMessage(receiptHandle, sqsService)
 					} else {
 						terminated := w.terminateNode(clock.New().Ticker(30*time.Second), d, ecsService, asgService, msg)
 						if terminated {
