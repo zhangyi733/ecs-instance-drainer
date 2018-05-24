@@ -16,7 +16,8 @@ before_script:
 - export TAG=`if [[ $TRAVIS_PULL_REQUEST == "false" ]] && [[ $TRAVIS_BRANCH == "master"
   ]]; then echo "latest"; else echo $TRAVIS_PULL_REQUEST_BRANCH; fi`
 before_install:
-- go get -t -v ./...
+- go get -u github.com/golang/dep/...
+- dep ensure
 script:
 - go test ./... -coverprofile=coverage.txt -covermode=atomic
 - docker build -t $REPO:$TAG -f Dockerfile .
