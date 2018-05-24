@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"errors"
 	"os"
 	"runtime"
 	"testing"
@@ -99,6 +100,22 @@ func TestTerminateNodeTimeout(t *testing.T) {
 	mc.Add(3660 * time.Second)
 }
 
+func TestDeleteMessage(t *testing.T) {
+	os.Setenv("LIFECYCLE_QUEUE", "test")
+	defer os.Setenv("LIFECYCLE_QUEUE", "")
+	r := "test"
+	m := &mockSQSClient{}
+	DeleteMessage(r, m)
+}
+
+func TestDeleteMessageError(t *testing.T) {
+	os.Setenv("LIFECYCLE_QUEUE", "invalid-queue")
+	defer os.Setenv("LIFECYCLE_QUEUE", "")
+	r := "test"
+	m := &mockSQSClient{}
+	DeleteMessage(r, m)
+}
+
 type mockECSClient struct {
 	ecsiface.ECSAPI
 }
@@ -138,6 +155,14 @@ func (m *mockDrainerClient) SetInstanceToDrain(svc ecsiface.ECSAPI) (bool, error
 }
 
 func (m *mockSQSClient) DeleteMessageRequest(input *sqs.DeleteMessageInput) sqs.DeleteMessageRequest {
+	if *input.QueueUrl == "invalid-queue" {
+		return sqs.DeleteMessageRequest{
+			Request: &aws.Request{
+				Data:  &sqs.DeleteMessageOutput{},
+				Error: errors.New("Error: Delete message request"),
+			},
+		}
+	}
 	return sqs.DeleteMessageRequest{
 		Request: &aws.Request{
 			Data: &sqs.DeleteMessageOutput{},
