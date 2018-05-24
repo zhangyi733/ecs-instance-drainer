@@ -10,8 +10,9 @@ import (
 )
 
 const (
-	queueEnvVar    = "LIFECYCLE_QUEUE"
-	sqsWaitSeconds = int64(20)
+	queueEnvVar       = "LIFECYCLE_QUEUE"
+	sqsWaitSeconds    = int64(20)
+	visibilityTimeout = int64(480)
 )
 
 type LifecycleMessage struct {
@@ -59,9 +60,11 @@ func (mp *MessageProccesor) Start(svc sqsiface.SQSAPI) {
 
 func (mp *MessageProccesor) RetrieveMessage(svc sqsiface.SQSAPI) {
 	w := sqsWaitSeconds
+	vs := visibilityTimeout
 	req := svc.ReceiveMessageRequest(&sqs.ReceiveMessageInput{
-		QueueUrl:        &mp.queueUrl,
-		WaitTimeSeconds: &w,
+		QueueUrl:          &mp.queueUrl,
+		WaitTimeSeconds:   &w,
+		VisibilityTimeout: &vs,
 	})
 	resp, err := req.Send()
 	if err != nil {
