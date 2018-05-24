@@ -106,6 +106,7 @@ type mockASGClient struct {
 type mockDrainerClient struct {
 	resp bool
 	drainer.Drain
+	InstanceId string
 }
 
 func (m *mockDrainerClient) HasNoRunningTasks(svc ecsiface.ECSAPI) bool {
@@ -118,4 +119,12 @@ func (m *mockASGClient) CompleteLifecycleActionRequest(input *autoscaling.Comple
 			Data: &autoscaling.CompleteLifecycleActionOutput{},
 		},
 	}
+}
+
+func (m *mockDrainerClient) SetInstanceId(i string) {
+	m.InstanceId = i
+}
+
+func (m *mockDrainerClient) SetInstanceToDrain(svc ecsiface.ECSAPI) (bool, error) {
+	return true, nil
 }

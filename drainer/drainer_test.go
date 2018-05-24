@@ -16,12 +16,22 @@ func init() {
 	os.Setenv("CLUSTER", "")
 }
 
+func TestSetInstanceId(t *testing.T) {
+	os.Setenv("CLUSTER", "test-cluster")
+	defer os.Setenv("CLUSTER", "")
+
+	expected := "testInstanceId"
+	d := NewDrainer()
+	d.SetInstanceId(expected)
+	assert.Equal(t, expected, d.InstanceId)
+}
+
 func TestHasNoRunningTasks(t *testing.T) {
 	os.Setenv("CLUSTER", "test-cluster")
 	defer os.Setenv("CLUSTER", "")
 
-	instanceId := "testInstanceId"
-	d := NewDrainer(instanceId)
+	d := NewDrainer()
+	d.InstanceId = "testInstanceId"
 	d.containerInstanceId = "testContainerInstanceArn"
 
 	data := ecs.ListTasksOutput{
@@ -37,8 +47,8 @@ func TestHasRunningTasks(t *testing.T) {
 	os.Setenv("CLUSTER", "test-cluster")
 	defer os.Setenv("CLUSTER", "")
 
-	instanceId := "testInstanceId"
-	d := NewDrainer(instanceId)
+	d := NewDrainer()
+	d.InstanceId = "testInstanceId"
 	d.containerInstanceId = "testContainerInstanceArn"
 
 	data := ecs.ListTasksOutput{
@@ -56,8 +66,8 @@ func TestHasRunningTasksFailedRequest(t *testing.T) {
 	os.Setenv("CLUSTER", "invalid-request-cluster")
 	defer os.Setenv("CLUSTER", "")
 
-	instanceId := "testInstanceId"
-	d := NewDrainer(instanceId)
+	d := NewDrainer()
+	d.InstanceId = "testInstanceId"
 	d.containerInstanceId = "testContainerInstanceArn"
 
 	mockSvc := &mockECSClient{}
@@ -70,8 +80,8 @@ func TestFindInstanceToDrain(t *testing.T) {
 	os.Setenv("CLUSTER", "test-cluster")
 	defer os.Setenv("CLUSTER", "")
 
-	instanceId := "testInstanceId"
-	d := NewDrainer(instanceId)
+	d := NewDrainer()
+	d.InstanceId = "testInstanceId"
 	containerArn := "testContainerInstanceArn"
 	listData := ecs.ListContainerInstancesOutput{
 		ContainerInstanceArns: []string{
@@ -81,7 +91,7 @@ func TestFindInstanceToDrain(t *testing.T) {
 	}
 	containerInstance := ecs.ContainerInstance{
 		ContainerInstanceArn: &containerArn,
-		Ec2InstanceId:        &instanceId,
+		Ec2InstanceId:        &d.InstanceId,
 	}
 	data := ecs.DescribeContainerInstancesOutput{
 		ContainerInstances: []ecs.ContainerInstance{
@@ -97,8 +107,8 @@ func TestFindInstanceToDrainUnknownCluster(t *testing.T) {
 	os.Setenv("CLUSTER", "invalid-cluster")
 	defer os.Setenv("CLUSTER", "")
 
-	instanceId := "testInstanceId"
-	d := NewDrainer(instanceId)
+	d := NewDrainer()
+	d.InstanceId = "testInstanceId"
 	mockSvc := &mockECSClient{}
 	_, err := d.findInstanceToDrain(mockSvc)
 	assert.Error(t, err)
@@ -108,8 +118,8 @@ func TestFindInstanceToDrainNoContainers(t *testing.T) {
 	os.Setenv("CLUSTER", "invalid-cluster-describe-instances")
 	defer os.Setenv("CLUSTER", "")
 
-	instanceId := "testInstanceId"
-	d := NewDrainer(instanceId)
+	d := NewDrainer()
+	d.InstanceId = "testInstanceId"
 	containerArn := "testContainerInstanceArn"
 	listData := ecs.ListContainerInstancesOutput{
 		ContainerInstanceArns: []string{
@@ -119,7 +129,7 @@ func TestFindInstanceToDrainNoContainers(t *testing.T) {
 	}
 	containerInstance := ecs.ContainerInstance{
 		ContainerInstanceArn: &containerArn,
-		Ec2InstanceId:        &instanceId,
+		Ec2InstanceId:        &d.InstanceId,
 	}
 	data := ecs.DescribeContainerInstancesOutput{
 		ContainerInstances: []ecs.ContainerInstance{
@@ -135,8 +145,8 @@ func TestDrainECSInstanceContainerNotFound(t *testing.T) {
 	os.Setenv("CLUSTER", "test-cluster")
 	defer os.Setenv("CLUSTER", "")
 
-	instanceId := "testInstanceId"
-	d := NewDrainer(instanceId)
+	d := NewDrainer()
+	d.InstanceId = "testInstanceId"
 	mockSvc := &mockECSClient{}
 	_, err := d.SetInstanceToDrain(mockSvc)
 	assert.Error(t, err)
@@ -146,8 +156,8 @@ func TestDrainECSInstanceFail(t *testing.T) {
 	os.Setenv("CLUSTER", "update-state-fail-cluster")
 	defer os.Setenv("CLUSTER", "")
 
-	instanceId := "testInstanceId"
-	d := NewDrainer(instanceId)
+	d := NewDrainer()
+	d.InstanceId = "testInstanceId"
 	containerArn := "testContainerArn"
 	listData := ecs.ListContainerInstancesOutput{
 		ContainerInstanceArns: []string{
@@ -156,7 +166,7 @@ func TestDrainECSInstanceFail(t *testing.T) {
 	}
 	containerInstance := ecs.ContainerInstance{
 		ContainerInstanceArn: &containerArn,
-		Ec2InstanceId:        &instanceId,
+		Ec2InstanceId:        &d.InstanceId,
 	}
 	data := ecs.DescribeContainerInstancesOutput{
 		ContainerInstances: []ecs.ContainerInstance{
@@ -173,8 +183,8 @@ func TestDrainECSInstance(t *testing.T) {
 	os.Setenv("CLUSTER", "test-cluster")
 	defer os.Setenv("CLUSTER", "")
 
-	instanceId := "testInstanceId"
-	d := NewDrainer(instanceId)
+	d := NewDrainer()
+	d.InstanceId = "testInstanceId"
 	containerArn := "testContainerArn"
 	listData := ecs.ListContainerInstancesOutput{
 		ContainerInstanceArns: []string{
@@ -183,7 +193,7 @@ func TestDrainECSInstance(t *testing.T) {
 	}
 	containerInstance := ecs.ContainerInstance{
 		ContainerInstanceArn: &containerArn,
-		Ec2InstanceId:        &instanceId,
+		Ec2InstanceId:        &d.InstanceId,
 	}
 	data := ecs.DescribeContainerInstancesOutput{
 		ContainerInstances: []ecs.ContainerInstance{

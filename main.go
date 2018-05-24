@@ -38,7 +38,8 @@ func main() {
 	if err != nil {
 		log.Fatal("Unable to get instance metadata")
 	}
-	d := drainer.NewDrainer(identity.InstanceID)
+	AwsConfig.Region = identity.Region
+	d := drainer.NewDrainer()
 
 	var wg sync.WaitGroup
 	wg.Add(1)

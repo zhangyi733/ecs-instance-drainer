@@ -15,19 +15,19 @@ const (
 
 type Drainer struct {
 	cluster             string
-	instanceId          string
+	InstanceId          string
 	containerInstanceId string
 }
 
 type Drain interface {
 	SetInstanceToDrain(svc ecsiface.ECSAPI) (bool, error)
 	HasNoRunningTasks(svc ecsiface.ECSAPI) bool
+	SetInstanceId(instanceId string)
 }
 
-func NewDrainer(instanceId string) *Drainer {
+func NewDrainer() *Drainer {
 	return &Drainer{
-		cluster:    helper.EnvMustHave(clusterEnv),
-		instanceId: instanceId,
+		cluster: helper.EnvMustHave(clusterEnv),
 	}
 }
 
@@ -47,9 +47,10 @@ func (d *Drainer) HasNoRunningTasks(svc ecsiface.ECSAPI) bool {
 }
 
 func (d *Drainer) SetInstanceToDrain(svc ecsiface.ECSAPI) (bool, error) {
+	log.Printf("Attempting to drain instance %s", d.InstanceId)
 	containerInstanceId, err := d.findInstanceToDrain(svc)
 	if err != nil {
-		log.Printf("Could not find instance id %s to drain.", d.instanceId)
+		log.Printf("Could not find instance id %s to drain.", d.InstanceId)
 		return false, err
 	}
 	d.containerInstanceId = containerInstanceId
@@ -63,6 +64,7 @@ func (d *Drainer) SetInstanceToDrain(svc ecsiface.ECSAPI) (bool, error) {
 		log.Printf("Error %v setting message timeout", err)
 		return false, err
 	}
+	log.Printf("Successfully draining instance %s", d.InstanceId)
 	return true, nil
 }
 
@@ -83,11 +85,16 @@ func (d *Drainer) findInstanceToDrain(svc ecsiface.ECSAPI) (string, error) {
 			log.Printf("Could not get information about container instance %v", err)
 		} else {
 			for _, containerInstance := range resp.ContainerInstances {
-				if *containerInstance.Ec2InstanceId == d.instanceId {
+				if *containerInstance.Ec2InstanceId == d.InstanceId {
+					log.Printf("Found container instance %s for instance %s", containerInstanceArn, d.InstanceId)
 					return *containerInstance.ContainerInstanceArn, nil
 				}
 			}
 		}
 	}
 	return "", errors.New("Could not find container instance")
+}
+
+func (d *Drainer) SetInstanceId(instanceId string) {
+	d.InstanceId = instanceId
 }

@@ -36,19 +36,20 @@ func (w *Worker) Start(d drainer.Drain, ecsService ecsiface.ECSAPI, asgService a
 		for {
 			select {
 			case msg := <-w.Message:
-				log.Printf("Got Message: '%v'", msg)
-				if msg.EC2InstanceId != "" {
+				go func() {
+					d.SetInstanceId(msg.EC2InstanceId)
+					log.Printf("Got Message: '%v'", msg)
 					_, err := d.SetInstanceToDrain(ecsService)
 					if err != nil {
 						log.Print("Error setting instance to draining")
-						return
+					} else {
+						terminated := w.terminateNode(clock.New().Ticker(30*time.Second), d, ecsService, asgService, msg)
+						if terminated {
+							// TODO Delete the SQS Message
+							w.quit <- true
+						}
 					}
-					terminated := w.terminateNode(clock.New().Ticker(30*time.Second), d, ecsService, asgService, msg)
-					if terminated {
-						// TODO Delete the SQS Message
-						w.quit <- true
-					}
-				}
+				}()
 			case <-w.quit:
 				return
 			}
@@ -77,6 +78,7 @@ func (w *Worker) terminateNode(ticker *clock.Ticker, d drainer.Drain, ecsService
 				done <- false
 			}
 			if d.HasNoRunningTasks(ecsService) {
+				log.Printf("No tasks running, shutting down %s", msg.EC2InstanceId)
 				req := asgService.CompleteLifecycleActionRequest(&autoscaling.CompleteLifecycleActionInput{
 					AutoScalingGroupName:  &msg.AutoScalingGroupName,
 					InstanceId:            &msg.EC2InstanceId,
@@ -85,11 +87,15 @@ func (w *Worker) terminateNode(ticker *clock.Ticker, d drainer.Drain, ecsService
 					LifecycleHookName:     &msg.LifecycleHookName,
 				})
 				_, err := req.Send()
-				if err == nil {
-					log.Printf("Completed termination lifecycle of %s instance", msg.EC2InstanceId)
+				if err != nil {
+					log.Printf("Failed to complete termination %v of instance %s, exiting", err, msg.EC2InstanceId)
+					done <- false
+				} else {
+					log.Printf("Completed termination lifecycle of instance %s", msg.EC2InstanceId)
 					done <- true
 				}
 			}
+			log.Print("Waiting for tasks to stop running.")
 		}
 	}
 }
