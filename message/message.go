@@ -77,6 +77,7 @@ func (mp *MessageProccesor) RetrieveMessage(svc sqsiface.SQSAPI) {
 		if err != nil {
 			log.Printf("Error parsing message %v", message)
 		}
+		lc.ReceiptHandle = *message.ReceiptHandle
 		mp.Message <- *lc
 	}
 }
