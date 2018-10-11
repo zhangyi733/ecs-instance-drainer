@@ -55,9 +55,9 @@ func (w *Worker) Start(d drainer.Drain, ecsService ecsiface.ECSAPI, asgService a
 							DeleteMessage(msg.ReceiptHandle, sqsService)
 						}
 					}
-					w.quit <- true
 				}()
 			case <-w.quit:
+				log.Printf("Quit worker thread")
 				return
 			}
 		}
