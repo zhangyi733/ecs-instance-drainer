@@ -12,7 +12,7 @@ import (
 const (
 	queueEnvVar       = "LIFECYCLE_QUEUE"
 	sqsWaitSeconds    = int64(20)
-	visibilityTimeout = int64(480)
+	visibilityTimeout = int64(60)
 )
 
 type LifecycleMessage struct {
