@@ -14,7 +14,7 @@ branches:
   - master
 before_script:
 - export TAG=`if [[ $TRAVIS_PULL_REQUEST == "false" ]] && [[ $TRAVIS_BRANCH == "master"
-  ]]; then echo "latest"; else echo $TRAVIS_PULL_REQUEST_BRANCH; fi`
+  ]]; then echo "latest"; else echo $TRAVIS_PULL_REQUEST_BRANCH | sed "s/\//-/g"; fi`
 before_install:
 - go get -u github.com/golang/dep/...
 - dep ensure
