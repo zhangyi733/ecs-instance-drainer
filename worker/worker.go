@@ -45,7 +45,7 @@ func (w *Worker) Start(d drainer.Drain, ecsService ecsiface.ECSAPI, asgService a
 					_, err := d.SetInstanceToDrain(ecsService)
 					if err != nil {
 						// Most likely the instance isn't part of the ECS cluster or already shutdown
-						log.Print("Error setting instance to draining")
+						log.Print("Warn failed setting instance to draining")
 						CompleteTermination(msg, asgService)
 						DeleteMessage(msg.ReceiptHandle, sqsService)
 					} else {
