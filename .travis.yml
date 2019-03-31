@@ -6,7 +6,7 @@ env:
   - secure: D/dWL21F/88faIRfJg5LbMBclQY86ho9ByeXnV+F586ctv4HGa2b95tjBfIyUkylIbigSaAsk4Ue+GYONxl7L80Wr5v9BNRk/WB4vo6Yd7eAYcHXZz24Ty2ziRBr2u4OswIF6Ul3q0YbjmbOMJrqVVR8Qhs1/qlXI8LouYEix4Fsbrpy2ZcdNWFmwHnBgx81G4YUf4PkFlFOYwum0RIODrhZRgYmrta6vdJMHDWz4Dtet3sQhNq8ms2eh7aTDgLo5i7Scqzm3gG9XBzfr/StIXdkpwbsoP9woe/gFVQThcyCi/Gz+HhL+e8ownN5XZA4cQwQHi7cyrDBkIP+WL6Eh5rYRxGmixKi+PAd4NjWEdbSLNFb71abWLKKB0ESH1apkqHHZEgUH7jZPWVq5Y590un9udv98kbBeDk4USyf+Lb+IQx0SoZNkF01xCmJhck++2G6wXMRIXegxGivLxskdK2MX2TgmDcSN/bqYrAK0wiDbNH4y7zy4YfZH3LYG1E+HMmZ4VXMvRMQc89kg/74SeydIfLnR56sd8L7xQYIW+eg+T0mO1iaSSdT+nznP8nchku1xb4kAvQWPXBRQd6nsl9isBkJwGFy4AxLyB1yV8mTc3PqgCruMxnUMjCMQT//VtvW2e9zlhx4pwM0r5s9+XsbyZCBOdy7uFSJazvesbA=
 language: go
 go:
-- 1.10.x
+- 1.12.x
 services:
 - docker
 branches:
@@ -15,9 +15,6 @@ branches:
 before_script:
 - export TAG=`if [[ $TRAVIS_PULL_REQUEST == "false" ]] && [[ $TRAVIS_BRANCH == "master"
   ]]; then echo "latest"; else echo $TRAVIS_PULL_REQUEST_BRANCH | sed "s/\//-/g"; fi`
-before_install:
-- go get -u github.com/golang/dep/...
-- dep ensure
 script:
 - go test ./... -coverprofile=coverage.txt -covermode=atomic
 - docker build -t $REPO:$TAG -f Dockerfile .

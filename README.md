@@ -1,5 +1,7 @@
 # ecs-instance-drainer
-Deployed to ECS clusters to handle ASG notifications
+Deployed to ECS clusters to handle ASG notifications.
+
+This project uses [go modules](https://blog.golang.org/modules2019).
 
 ## Build Source
 ### Windows
