@@ -16,7 +16,7 @@ before_script:
 - export TAG=`if [[ $TRAVIS_PULL_REQUEST == "false" ]] && [[ $TRAVIS_BRANCH == "master"
   ]]; then echo "latest"; else echo $TRAVIS_PULL_REQUEST_BRANCH | sed "s/\//-/g"; fi`
 script:
-- go test ./... -coverprofile=coverage.txt -covermode=atomic -v
+- go test ./... -coverprofile=coverage.txt -covermode=atomic
 - CGO_ENABLED=0 GOOS=linux go build -a -o ecs-instance-drainer .
 - docker build -t $REPO:$TAG -f Dockerfile .
 after_success:
